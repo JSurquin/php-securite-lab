@@ -1,0 +1,48 @@
+
+services:
+  php:
+    image: php:8.2-apache
+    container_name: php_securite_lab
+    ports:
+      - "8080:80"
+    volumes:
+      - ./public:/var/www/html
+      - ./uploads:/var/www/uploads
+    environment:
+      - MYSQL_HOST=db
+      - MYSQL_DB=securite_lab
+      - MYSQL_USER=labuser
+      - MYSQL_PASS=labpass123
+    depends_on:
+      - db
+    command: >
+      bash -c "docker-php-ext-install pdo pdo_mysql mysqli &&
+               a2enmod rewrite &&
+               apache2-foreground"
+
+  db:
+    image: mysql:8.0
+    container_name: php_securite_db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: securite_lab
+      MYSQL_USER: labuser
+      MYSQL_PASSWORD: labpass123
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - db_data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: php_securite_pma
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: labuser
+      PMA_PASSWORD: labpass123
+
+volumes:
+  db_data:
