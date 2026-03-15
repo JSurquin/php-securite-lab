@@ -55,6 +55,16 @@ app/
 ├── docker-compose.yml       # Environnement LAMP (PHP 8.2 + MySQL 8 + PhpMyAdmin)
 ├── README.md                # Ce fichier
 ├── CORRECTIONS.md           # Guide pédagogique avec toutes les corrections
+├── corrections/             # Fichiers PHP corrigés (à comparer avec public/)
+│   ├── config.php           # SESSION-01, CONFIG-01
+│   ├── login.php            # SQLi-01, SESSION-02, CSRF-01, PASSWD-02
+│   ├── register.php         # PASSWD-01, VALIDATION-01
+│   ├── article.php          # SQLi-02, XSS-01/02, CSRF-02
+│   ├── search.php           # SQLi-03, XSS-03
+│   ├── dashboard.php        # IDOR-02, CSRF-05, PASSWD-02
+│   ├── exec.php             # CMD-01
+│   ├── page.php             # LFI-01
+│   └── contact.php          # IDOR-01, CSRF-04, XSS-04
 ├── sql/
 │   └── init.sql             # Schéma et données de test
 └── public/                  # Web-root Apache
