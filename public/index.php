@@ -3,7 +3,6 @@ require_once 'config.php';
 
 $pdo = getDB();
 
-// Récupération des articles
 $articles = $pdo->query("SELECT a.*, u.username FROM articles a LEFT JOIN users u ON a.author_id = u.id ORDER BY a.created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
@@ -16,7 +15,6 @@ $articles = $pdo->query("SELECT a.*, u.username FROM articles a LEFT JOIN users 
         nav { background: #c0392b; padding: 12px 20px; border-radius: 6px; margin-bottom: 30px; }
         nav a { color: white; text-decoration: none; margin-right: 20px; font-weight: bold; }
         nav a:hover { text-decoration: underline; }
-        .alert { background: #ffe0e0; border: 1px solid #c0392b; padding: 10px; border-radius: 4px; margin-bottom: 20px; font-size: 13px; }
         .card { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,.1); }
         .card h2 a { color: #c0392b; text-decoration: none; }
         .meta { color: #888; font-size: 13px; margin-top: 8px; }
@@ -37,11 +35,6 @@ $articles = $pdo->query("SELECT a.*, u.username FROM articles a LEFT JOIN users 
         <a href="logout.php">🚪 Déconnexion</a>
     <?php endif; ?>
 </nav>
-
-<div class="alert">
-    ⚠️ <strong>LAB PÉDAGOGIQUE</strong> – Cette application contient <strong>des failles intentionnelles</strong>.
-    Consulte <code>CORRECTIONS.md</code> pour les exercices.
-</div>
 
 <h1>Blog Lab Sécurité PHP</h1>
 

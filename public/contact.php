@@ -9,27 +9,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email   = $_POST['email']   ?? '';
     $message = $_POST['message'] ?? '';
 
-    // ============================================================
-    // FAILLE CSRF-04 : Pas de token CSRF
-    // Un site malveillant peut envoyer des messages à l'insu de l'utilisateur
-    // ============================================================
-
-    // ============================================================
-    // FAILLE VALIDATION-02 : Pas de validation de l'email
-    // ============================================================
     $stmt = $pdo->prepare("INSERT INTO contact_messages (email, message) VALUES (?, ?)");
     $stmt->execute([$email, $message]);
 
     $success = "Message envoyé !";
 }
 
-// Récupération des messages pour les admins
-// ============================================================
-// FAILLE IDOR-01 : Accès aux messages sans vérification de rôle admin
-// N'importe qui peut voir tous les messages en ajoutant ?admin=1
-// ============================================================
 $messages = [];
-if (isset($_GET['admin'])) {  // ❌ FAILLE: pas de vérification d'authentification
+if (isset($_GET['admin'])) {
     $pdo = getDB();
     $messages = $pdo->query("SELECT * FROM contact_messages ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -58,7 +45,6 @@ if (isset($_GET['admin'])) {  // ❌ FAILLE: pas de vérification d'authentifica
 <?php endif; ?>
 
 <form method="POST">
-    <!-- ❌ FAILLE CSRF-04: absence de token CSRF -->
     <label>Votre email</label>
     <input type="text" name="email" required>
 
@@ -71,11 +57,9 @@ if (isset($_GET['admin'])) {  // ❌ FAILLE: pas de vérification d'authentifica
 <?php if (!empty($messages)): ?>
 <div class="admin-panel">
     <h2>📬 Messages reçus (panel admin)</h2>
-    <!-- ❌ FAILLE IDOR-01 : accessible sans authentification avec ?admin=1 -->
     <?php foreach ($messages as $msg): ?>
         <div style="border-bottom:1px solid #ddd; padding: 8px 0;">
             <strong><?= htmlspecialchars($msg['email']) ?></strong><br>
-            <!-- ❌ FAILLE XSS-04 : message affiché sans échappement -->
             <?= $msg['message'] ?>
             <small style="color:#888"> – <?= $msg['created_at'] ?></small>
         </div>

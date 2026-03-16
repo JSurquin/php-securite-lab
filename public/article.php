@@ -3,14 +3,9 @@ require_once 'config.php';
 
 $pdo = getDB();
 
-// ============================================================
-// FAILLE SQLi-02 : Injection SQL via paramètre GET
-// Test : /article.php?id=1 UNION SELECT 1,username,password,email,role,created_at FROM users--
-// ============================================================
-$id = $_GET['id'];  // ❌ FAILLE: non filtré, non casté en entier
+$id = $_GET['id'];
 
 $query = "SELECT a.*, u.username FROM articles a LEFT JOIN users u ON a.author_id = u.id WHERE a.id = $id";
-// ❌ FAILLE SQLi-02 : concaténation directe
 
 $article = $pdo->query($query)->fetch(PDO::FETCH_ASSOC);
 
@@ -18,21 +13,14 @@ if (!$article) {
     die("Article introuvable.");
 }
 
-// Récupération des commentaires
 $comments = $pdo->query("SELECT * FROM comments WHERE article_id = $id ORDER BY created_at ASC")->fetchAll(PDO::FETCH_ASSOC);
 
-// Traitement d'un nouveau commentaire
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $author  = $_POST['author']  ?? '';
     $content = $_POST['content'] ?? '';
 
-    // ============================================================
-    // FAILLE XSS-01 : Stored XSS
-    // Les commentaires sont enregistrés et réaffichés sans échappement
-    // Test : <script>alert('XSS stocké !')</script>
-    // ============================================================
     $stmt = $pdo->prepare("INSERT INTO comments (article_id, author_name, content) VALUES (?, ?, ?)");
-    $stmt->execute([$id, $author, $content]);  // ❌ FAILLE: $content non assaini
+    $stmt->execute([$id, $author, $content]);
 
     header("Location: article.php?id=$id");
     exit;
@@ -43,10 +31,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title><?= $article['title'] ?> – Lab Sécurité</title>
-    <!-- ============================================================
-         FAILLE XSS-02 : Le titre est affiché sans htmlspecialchars()
-         dans la balise <title> et ci-dessous dans le h1
-         ============================================================ -->
     <style>
         body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; background: #f5f5f5; }
         nav { background: #c0392b; padding: 12px 20px; border-radius: 6px; margin-bottom: 30px; }
@@ -66,7 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </nav>
 
 <div class="card">
-    <!-- ❌ FAILLE XSS-02 : affichage sans htmlspecialchars() -->
     <h1><?= $article['title'] ?></h1>
     <p><?= $article['content'] ?></p>
     <small>Par <?= $article['username'] ?> – <?= $article['created_at'] ?></small>
@@ -76,7 +59,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <?php foreach ($comments as $comment): ?>
 <div class="comment">
-    <!-- ❌ FAILLE XSS-01 : commentaire affiché sans échappement → XSS stocké -->
     <strong><?= $comment['author_name'] ?></strong>
     <p><?= $comment['content'] ?></p>
 </div>
@@ -84,9 +66,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="card">
     <h3>Laisser un commentaire</h3>
-    <!-- ============================================================
-         FAILLE CSRF-02 : Pas de token CSRF sur le formulaire de commentaire
-         ============================================================ -->
     <form method="POST">
         <label>Votre nom</label>
         <input type="text" name="author" required>

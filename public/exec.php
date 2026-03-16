@@ -1,19 +1,12 @@
 <?php
 require_once 'config.php';
 
-// ============================================================
-// FAILLE CMD-01 : Injection de commande système
-// Test : ?host=127.0.0.1; cat /etc/passwd
-// Test : ?host=127.0.0.1 && ls /var/www/html
-// Test : ?host=`id`
-// ============================================================
 $output = '';
 $host   = '';
 
 if (isset($_GET['host'])) {
-    $host = $_GET['host'];  // ❌ FAILLE: non filtré, non échappé
+    $host = $_GET['host'];
 
-    // ❌ FAILLE CMD-01 : exécution de commande avec entrée utilisateur
     exec("ping -c 1 " . $host, $output_lines);
     $output = implode("\n", $output_lines);
 }
@@ -29,13 +22,12 @@ if (isset($_GET['host'])) {
         input { padding: 10px; width: 60%; border: 1px solid #ccc; border-radius: 4px; }
         button { background: #c0392b; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
         pre { background: #1e1e1e; color: #0f0; padding: 16px; border-radius: 6px; overflow-x: auto; }
-        .hint { background: #fff8e1; padding: 12px; border-radius: 4px; margin-top: 20px; font-size: 13px; }
         a { color: #c0392b; }
     </style>
 </head>
 <body>
 
-<h1>🖧 Outil Ping (vulnérable)</h1>
+<h1>🖧 Outil Ping</h1>
 
 <form method="GET">
     <input type="text" name="host" value="<?= htmlspecialchars($host) ?>" placeholder="ex: 127.0.0.1">
@@ -45,13 +37,6 @@ if (isset($_GET['host'])) {
 <?php if ($output): ?>
     <pre><?= htmlspecialchars($output) ?></pre>
 <?php endif; ?>
-
-<div class="hint">
-    💡 <strong>Indice :</strong><br>
-    Essaie : <code>127.0.0.1; id</code><br>
-    Essaie : <code>127.0.0.1 && cat /etc/passwd</code><br>
-    Essaie : <code>127.0.0.1 | ls /var/www/html</code>
-</div>
 
 <p><a href="index.php">← Retour</a></p>
 

@@ -11,19 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email    = $_POST['email']    ?? '';
     $password = $_POST['password'] ?? '';
 
-    // ============================================================
-    // FAILLE PASSWD-01 : Mot de passe stocké en CLAIR
-    // Doit utiliser password_hash($password, PASSWORD_ARGON2ID)
-    // ============================================================
     $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-    $stmt->execute([$username, $email, $password]);  // ❌ FAILLE: mot de passe en clair
-
-    // ============================================================
-    // FAILLE VALIDATION-01 : Aucune validation des entrées
-    // - Pas de vérification de la longueur du mot de passe
-    // - Pas de vérification du format de l'email
-    // - Pas de vérification que l'utilisateur existe déjà
-    // ============================================================
+    $stmt->execute([$username, $email, $password]);
 
     $success = "Compte créé ! <a href='login.php'>Se connecter</a>";
 }
@@ -57,7 +46,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <label>Mot de passe</label>
     <input type="password" name="password" required>
-    <!-- ❌ FAILLE: aucune règle de complexité -->
 
     <button type="submit">Créer mon compte</button>
 </form>

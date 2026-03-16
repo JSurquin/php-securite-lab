@@ -7,14 +7,9 @@ $query_str = '';
 if (isset($_GET['q'])) {
     $pdo = getDB();
 
-    // ============================================================
-    // FAILLE SQLi-03 : Injection SQL dans la recherche
-    // Test : ' UNION SELECT 1,username,password,email,role,created_at FROM users--
-    // ============================================================
-    $query_str = $_GET['q'];  // ❌ FAILLE: non filtré
+    $query_str = $_GET['q'];
 
     $sql = "SELECT * FROM articles WHERE title LIKE '%$query_str%' OR content LIKE '%$query_str%'";
-    // ❌ FAILLE SQLi-03
 
     $results = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -45,12 +40,10 @@ if (isset($_GET['q'])) {
 
 <form method="GET">
     <input type="text" name="q" value="<?= $_GET['q'] ?? '' ?>" placeholder="Rechercher...">
-    <!-- ❌ FAILLE XSS-03 : la valeur du champ est réaffichée sans htmlspecialchars() (Reflected XSS) -->
     <button type="submit">Rechercher</button>
 </form>
 
 <?php if ($query_str !== ''): ?>
-    <!-- ❌ FAILLE XSS-03 : Reflected XSS sur le terme de recherche -->
     <p>Résultats pour : <strong><?= $query_str ?></strong></p>
 
     <?php if (empty($results)): ?>

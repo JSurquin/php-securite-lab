@@ -1,10 +1,6 @@
 <?php
 require_once 'config.php';
 
-// ============================================================
-// FAILLE AUTH-01 : Vérification d'authentification incomplète
-// La variable $_SESSION['user_id'] peut être manipulée
-// ============================================================
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
@@ -12,32 +8,18 @@ if (!isset($_SESSION['user_id'])) {
 
 $pdo = getDB();
 
-// ============================================================
-// FAILLE IDOR-02 : Un utilisateur peut voir le profil d'un autre
-// en changeant le paramètre ?user_id=X
-// ============================================================
-$viewId = $_GET['user_id'] ?? $_SESSION['user_id'];  // ❌ FAILLE: pas de vérification
+$viewId = $_GET['user_id'] ?? $_SESSION['user_id'];
 
 $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->execute([$viewId]);
 $profile = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Traitement du changement de mot de passe
 $pwdMsg = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_password'])) {
-
-    // ============================================================
-    // FAILLE CSRF-05 : Changement de mot de passe sans token CSRF
-    // Un site tiers peut changer le mot de passe d'un utilisateur connecté
-    // ============================================================
-
     $newPassword = $_POST['new_password'];
 
-    // ============================================================
-    // FAILLE PASSWD-02 : Nouveau mot de passe stocké en clair
-    // ============================================================
     $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
-    $stmt->execute([$newPassword, $_SESSION['user_id']]);  // ❌ FAILLE: en clair
+    $stmt->execute([$newPassword, $_SESSION['user_id']]);
 
     $pwdMsg = "Mot de passe mis à jour.";
 }
@@ -56,7 +38,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_password'])) {
         button { background: #c0392b; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
         .msg { background: #e0ffe0; padding: 10px; border-radius: 4px; margin-bottom: 16px; }
         h1,h2 { color: #c0392b; }
-        .hint { background: #fff8e1; padding: 10px; border-radius: 4px; font-size: 13px; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -78,19 +59,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_password'])) {
         <p><strong>ID :</strong> <?= $profile['id'] ?></p>
         <p><strong>Nom :</strong> <?= $profile['username'] ?></p>
         <p><strong>Email :</strong> <?= $profile['email'] ?></p>
-        <!-- ❌ FAILLE IDOR-02 : le mot de passe est affiché (en clair dans la BDD) -->
         <p><strong>Mot de passe :</strong> <?= $profile['password'] ?></p>
         <p><strong>Rôle :</strong> <?= $profile['role'] ?></p>
     <?php endif; ?>
-
-    <div class="hint">
-        💡 <strong>Indice :</strong> Essaie <code>?user_id=1</code>, <code>?user_id=2</code>...
-    </div>
 </div>
 
 <div class="card">
     <h2>Changer mon mot de passe</h2>
-    <!-- ❌ FAILLE CSRF-05 : pas de token CSRF -->
     <form method="POST">
         <label>Nouveau mot de passe</label>
         <input type="password" name="new_password" required>
