@@ -8,6 +8,7 @@ services:
     volumes:
       - ./public:/var/www/html
       - ./uploads:/var/www/uploads
+      - ./php/php-security.ini:/usr/local/etc/php/conf.d/security.ini:ro
     environment:
       - MYSQL_HOST=db
       - MYSQL_DB=securite_lab
@@ -17,7 +18,7 @@ services:
       - db
     command: >
       bash -c "docker-php-ext-install pdo pdo_mysql mysqli &&
-               a2enmod rewrite &&
+               a2enmod rewrite headers &&
                apache2-foreground"
 
   db:
