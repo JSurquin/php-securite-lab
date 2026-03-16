@@ -12,8 +12,10 @@ if (isset($_GET['host'])) {
         $output = "Erreur : adresse IP invalide.";
     } else {
         // ✅ CMD-01 : escapeshellarg() neutralise tout caractère dangereux
-        exec('ping -c 1 ' . escapeshellarg($host), $output_lines);
-        $output = implode("\n", $output_lines);
+        exec('ping -c 1 ' . escapeshellarg($host) . ' 2>&1', $output_lines);
+        $output = !empty($output_lines)
+            ? implode("\n", $output_lines)
+            : "Commande exécutée (ping non disponible dans cet environnement).";
     }
 }
 ?>
